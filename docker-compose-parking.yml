@@ -7,7 +7,7 @@ services:
     volumes:
       - /home/ubuntu/config/application.yml:/config/application.yml
     environment:
-      - SPRING_CONFIG_LOCATION=file:/app/config/application.yml
+      - SPRING_CONFIG_LOCATION=file:/config/application.yml
     ports:
       - "8100:8100"
     env_file:
