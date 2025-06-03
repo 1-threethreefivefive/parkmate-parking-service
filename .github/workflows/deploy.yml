@@ -65,20 +65,25 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          script_stop: true
           script: |
-            echo "AWS_ACCESS_KEY_ID"=${{ secrets.AWS_ACCESS_KEY_ID }} > .env
-            echo "AWS_SECRET_ACCESS_KEY"=${{ secrets.AWS_SECRET_ACCESS_KEY }} >> .env
-            echo "EUREKA_HOST=${{ secrets.EUREKA_HOST }}" >> .env
-            echo "KAFKA_BOOTSTRAP_SERVERS=${{ secrets.KAFKA_BOOTSTRAP_SERVERS }}" >> .env
-            echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> .env
-            echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> .env
-            echo "MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}" >> .env
-            echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+            # 환경변수 파일 생성
+            cat > .env << EOF
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            EUREKA_HOST=${{ secrets.EUREKA_HOST }}
+            KAFKA_BOOTSTRAP_SERVERS=${{ secrets.KAFKA_BOOTSTRAP_SERVERS }}
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
+            MYSQL_HOST=${{ secrets.MYSQL_HOST }}
+            MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
+            MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+            EOF
             
-            mkdir -p ~/app/parking/src/main/resources
-            echo "${{ secrets.APPLICATION_YML }}" > ~/app/parking/src/main/resources/application.yml
-
+            # application.yml 파일을 컨테이너가 접근 가능한 위치에 생성
+            mkdir -p ~/config
+            cat > ~/config/application.yml << 'EOL'
+            ${{ secrets.APPLICATION_YML }}
+            EOL
+            
             docker pull ${{ steps.login-ecr.outputs.registry }}/parking-service:latest
             docker compose -f docker-compose-parking.yml down
             docker compose -f docker-compose-parking.yml up -d
